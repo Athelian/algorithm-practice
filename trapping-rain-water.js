@@ -43,17 +43,23 @@ var trap = function (height) {
       a.pop();
       const maxLeft = getMaxValIdx(a);
       totalWater += countWater(partition.slice(maxLeft[1]));
-      const leftPartition = partition.slice(0, maxLeft[1]);
-      recursion(leftPartition, true);
+      const leftPartition = partition.slice(0, maxLeft[1] + 1);
+      if (leftPartition.length >= 3) recursion(leftPartition, true);
     } else {
-      totalWater += countWater(partition.slice(0, maxPartition[1] + 1));
-      const rightPartition = partition.slice(maxPartition[1] + 1);
-      recursion(rightPartition);
+      const a = partition.slice();
+      a.shift();
+      const maxRight = getMaxValIdx(a);
+      totalWater += countWater(partition.slice(0, maxRight[1] + 2));
+      const rightPartition = partition.slice(maxRight[1] + 1);
+      if (rightPartition.length >= 3) recursion(rightPartition);
     }
   };
 
   const countWater = (height) => {
     //should receive an array with two large walls at each side
+
+    //Sometimes we receive a dead array
+    if (height.length < 3) return 0;
 
     // we could count the maximum possible water and then remove the bars
     // in between:
@@ -61,8 +67,8 @@ var trap = function (height) {
     // max possible height is naturally the larger of the two left / right bars:
     const maxWater =
       (height[0] > height[height.length - 1]
-        ? height[0]
-        : height[height.length - 1]) *
+        ? height[height.length - 1]
+        : height[0]) *
       (height.length - 2);
 
     // now just sum all the heights in between
@@ -86,6 +92,8 @@ var trap = function (height) {
 
   // Now that we have the biggest bar, and its index, we need to find
   // the next biggest bar on each side, as those two will form a cavity
+
+  return totalWater;
 };
 
-console.log(trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]));
+console.log(trap([2, 1, 0, 2]));
