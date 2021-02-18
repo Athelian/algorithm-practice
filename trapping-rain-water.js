@@ -24,40 +24,33 @@ var trap = function (height) {
   const getMaxValIdx = (height) =>
     height.reduce(
       (maxValIdx, value, index) => {
-        if (value > maxValIdx[0]) {
-          maxValIdx[0] = value;
-          maxValIdx[1] = index;
+        if (value > maxValIdx.value) {
+          maxValIdx.value = value;
+          maxValIdx.index = index;
         }
         return maxValIdx;
       },
-      [0, 0]
+      { value: 0, index: 0 }
     );
 
-  const recursion = (partition, left) => {
-    // This goes from start of array and does not include middle bar
-    const maxPartition = getMaxValIdx(partition);
-
-    // if this is a left, we need to count water between this max and the middle max:
+  const recursion = (partition, left, max) => {
     if (left) {
-      const a = partition.slice();
-      a.pop();
-      const maxLeft = getMaxValIdx(a);
-      totalWater += countWater(partition.slice(maxLeft[1]));
-      const leftPartition = partition.slice(0, maxLeft[1] + 1);
+      const maxLeft = getMaxValIdx(partition);
+      totalWater += countWater(partition.slice(maxLeft.index));
+      const leftPartition = partition.slice(0, maxLeft.index + 1);
       if (leftPartition.length >= 3) recursion(leftPartition, true);
     } else {
       const a = partition.slice();
       a.shift();
       const maxRight = getMaxValIdx(a);
-      totalWater += countWater(partition.slice(0, maxRight[1] + 2));
-      const rightPartition = partition.slice(maxRight[1] + 1);
+      totalWater += countWater(partition.slice(0, maxRight.index + 2));
+      const rightPartition = partition.slice(maxRight.index + 1);
       if (rightPartition.length >= 3) recursion(rightPartition);
     }
   };
 
+  //should receive an array with two large walls at each side
   const countWater = (height) => {
-    //should receive an array with two large walls at each side
-
     //Sometimes we receive a dead array
     if (height.length < 3) return 0;
 
@@ -84,16 +77,12 @@ var trap = function (height) {
   };
 
   const middleMax = getMaxValIdx(height);
-  const leftPartition = height.slice(0, middleMax[1] + 1);
-  const rightPartition = height.slice(middleMax[1]);
-
-  recursion(leftPartition, true);
-  recursion(rightPartition, false);
-
-  // Now that we have the biggest bar, and its index, we need to find
-  // the next biggest bar on each side, as those two will form a cavity
+  const leftPartition = height.slice(0, middleMax.index);
+  const rightPartition = height.slice(middleMax.index + 1);
+  recursion(leftPartition, true, middleMax.value);
+  recursion(rightPartition, false, middleMax.value);
 
   return totalWater;
 };
 
-console.log(trap([2, 1, 0, 2]));
+console.log(trap([0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]));
