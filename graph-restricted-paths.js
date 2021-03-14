@@ -17,12 +17,7 @@ var countRestrictedPaths = function (n, edges) {
     map[edge[1]].routes[edge[0]] = edge[2];
   });
 
-  // Mark the final node as completed, even though it has no value
-  map[n].distance = 0;
-
   const visited = {};
-  const toDo = {};
-
   const getDistance = (node) => {
     // We want to do the same as before but check every single path available
     // to node, it will form a tree, where the edges are a processed neighbor
@@ -33,6 +28,7 @@ var countRestrictedPaths = function (n, edges) {
 
     Object.keys(map[node].routes).forEach((route) => {
       if (visited[route]) return;
+      if (queue.indexOf(route) < 0 && !map[route].distance) queue.push(route);
       if (parseInt(route) === n) {
         // If the route is the final node... end
         if (map[node].routes[route] < min) {
@@ -49,44 +45,19 @@ var countRestrictedPaths = function (n, edges) {
         if (routeValue + counter < min) {
           min = counter + routeValue;
         }
+        counter -= map[node].routes[route];
       }
     });
     delete visited[node];
 
     return min;
-
-    // or the final node itself.
-    // const completedNeighbors = [];
-    // // Add all of it's children to the queue
-    // Object.keys(map[node].routes).forEach((route) => {
-    //   // If the route has been processed already, mark it for comparison later on
-    //   map[route].distance || parseInt(route) === n
-    //     ? completedNeighbors.push(route)
-    //     : queue.push(route);
-    // });
-    // // Now we have added all the siblings to the queue, and found all the processed siblings
-    // // Now we need to find the best route, which will be the minimum of the sibling's distance +
-    // // the weight of the route to it
-    // map[node].distance = completedNeighbors.reduce(
-    //   (acc, neighbor) =>
-    //     acc < map[node].routes[neighbor]
-    //       ? acc
-    //       : map[node].routes[neighbor] + map[neighbor].distance,
-    //   map[node].routes[completedNeighbors[0]] +
-    //     map[completedNeighbors[0]].distance
-    // );
   };
 
-  Object.keys(map).forEach((node) => {
-    map[node].distance = getDistance(node);
-  });
-
-  // Start by forming the queue of all the final node's neighbors
-  // const queue = [...Object.keys(map[n].routes)];
-  // while (queue.length) {
-  //   const next = queue.shift();
-  //   map[next].distance = getDistance(next);
-  // }
+  const queue = [...Object.keys(map[n].routes)];
+  while (queue.length) {
+    const next = queue.shift();
+    map[next].distance = getDistance(next);
+  }
 
   let paths = 0;
   (function count(node) {
@@ -101,12 +72,22 @@ var countRestrictedPaths = function (n, edges) {
   return paths;
 };
 
-countRestrictedPaths(5, [
-  [1, 2, 3],
-  [1, 3, 3],
-  [2, 3, 1],
-  [1, 4, 2],
-  [5, 2, 2],
-  [3, 5, 1],
-  [5, 4, 10],
+countRestrictedPaths(10, [
+  [9, 10, 8],
+  [9, 6, 5],
+  [1, 5, 9],
+  [6, 8, 10],
+  [1, 8, 1],
+  [8, 10, 7],
+  [10, 7, 9],
+  [5, 7, 3],
+  [4, 2, 9],
+  [2, 3, 9],
+  [3, 10, 4],
+  [1, 4, 7],
+  [7, 6, 1],
+  [3, 9, 8],
+  [9, 1, 6],
+  [4, 7, 10],
+  [9, 4, 9],
 ]);
