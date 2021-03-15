@@ -8,86 +8,102 @@ var countRestrictedPaths = function (n, edges) {
 
   edges.forEach((edge) => {
     if (!map[edge[0]]) {
-      map[edge[0]] = { distance: 0, routes: {} };
+      map[edge[0]] = { distance: Infinity, routes: {}, visited: false };
     }
     map[edge[0]].routes[edge[1]] = edge[2];
+    if (edge[0] === n) map[edge[0]].distance = 0;
     if (!map[edge[1]]) {
-      map[edge[1]] = { distance: 0, routes: {} };
+      map[edge[1]] = { distance: Infinity, routes: {}, visited: false };
     }
     map[edge[1]].routes[edge[0]] = edge[2];
+    if (edge[1] === n) map[edge[1]].distance = 0;
   });
 
-  const visited = {};
-  const getDistance = (node) => {
-    // We want to do the same as before but check every single path available
-    // to node, it will form a tree, where the edges are a processed neighbor
-    if (parseInt(node) === n) return 0;
-    visited[node] = true;
-    let min = 9999999;
-    let counter = 0;
+  let visited = [];
+  const unvisited = [...Array(n + 1).keys()].slice(1);
 
-    Object.keys(map[node].routes).forEach((route) => {
-      if (visited[route]) return;
-      if (queue.indexOf(route) < 0 && !map[route].distance) queue.push(route);
-      if (parseInt(route) === n) {
-        // If the route is the final node... end
-        if (map[node].routes[route] < min) {
-          min = map[node].routes[route];
-        }
-      } else if (map[route].distance) {
-        // If the route is already calculated... end
-        if (map[node].routes[route] + map[route].distance < min) {
-          min = map[node].routes[route] + map[route].distance;
-        }
-      } else {
-        counter += map[node].routes[route];
-        const routeValue = getDistance(route);
-        if (routeValue + counter < min) {
-          min = counter + routeValue;
-        }
-        counter -= map[node].routes[route];
+  const getDistance = (node) => {
+    visited.push(unvisited.splice(unvisited.indexOf(node), 1)[0]);
+    map[node].visited = true;
+
+    Object.entries(map[node].routes).forEach((route) => {
+      if (map[route[0]].visited) return;
+      if (map[node].distance + route[1] < map[route[0]].distance) {
+        map[route[0]].distance = map[node].distance + route[1];
       }
     });
-    delete visited[node];
 
-    return min;
+    const next = unvisited.reduce(
+      (memo, route) => {
+        if (map[route].distance < memo[1]) return [route, map[route].distance];
+        else return memo;
+      },
+      [null, Infinity]
+    )[0];
+
+    if (next) getDistance(next);
   };
 
-  const queue = [...Object.keys(map[n].routes)];
-  while (queue.length) {
-    const next = queue.shift();
-    map[next].distance = getDistance(next);
-  }
+  getDistance(unvisited[unvisited.length - 1]);
 
+  visited = {};
+  const finishNodes = {};
   let paths = 0;
   (function count(node) {
-    Object.keys(map[node].routes).forEach((route) => {
-      if (parseInt(route) === n) return paths++;
-      if (map[node].distance > map[route].distance) {
-        count(route);
-      }
-    });
+    if (parseInt(node) === n) {
+      Object.keys(visited).forEach((visitedNode) => {
+        // Every node within here provides a path if hit
+        // If we hit that path again from another direction, we can add its
+        // previously calculated number of paths, and denote it as providing an additional path
+        if (visitedNode !== "1") {
+          if (!finishNodes[visitedNode]) {
+            finishNodes[visitedNode] = 1;
+          } else {
+            finishNodes[visitedNode]++;
+          }
+        }
+      });
+      return paths++;
+    }
+    if (finishNodes[node]) {
+      paths += finishNodes[node];
+      Object.keys(visited).forEach((visitedNode) => {
+        if (visitedNode !== "1") {
+          if (!finishNodes[visitedNode]) {
+            finishNodes[visitedNode] = finishNodes[node];
+          } else {
+            finishNodes[visitedNode] += finishNodes[node];
+          }
+        }
+      });
+      return;
+    }
+    visited[node] = true;
+
+    Object.keys(map[node].routes)
+      .sort((a, b) => b - a)
+      .filter((route) => map[node].distance > map[route].distance)
+      .forEach((route) => count(route));
+
+    delete visited[node];
   })(1);
 
   return paths;
 };
 
-countRestrictedPaths(10, [
-  [9, 10, 8],
-  [9, 6, 5],
-  [1, 5, 9],
-  [6, 8, 10],
-  [1, 8, 1],
-  [8, 10, 7],
-  [10, 7, 9],
-  [5, 7, 3],
-  [4, 2, 9],
-  [2, 3, 9],
-  [3, 10, 4],
-  [1, 4, 7],
-  [7, 6, 1],
-  [3, 9, 8],
-  [9, 1, 6],
-  [4, 7, 10],
-  [9, 4, 9],
+countRestrictedPaths(6, [
+  [2, 1, 3574],
+  [4, 3, 1378],
+  [1, 5, 38739],
+  [6, 1, 95222],
+  [5, 4, 78194],
+  [4, 6, 41976],
+  [1, 4, 58963],
+  [4, 2, 51285],
+  [2, 3, 41063],
+  [2, 6, 52240],
+  [5, 6, 8253],
+  [3, 6, 8414],
+  [5, 3, 41596],
+  [1, 3, 78833],
 ]);
