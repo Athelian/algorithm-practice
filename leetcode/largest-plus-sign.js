@@ -5,6 +5,8 @@
  */
 var orderOfLargestPlusSign = function (N, mines) {
   let best = 0;
+  let i;
+  let nextZero;
 
   let gridHorizontal = Array(N)
     .fill()
@@ -14,21 +16,25 @@ var orderOfLargestPlusSign = function (N, mines) {
   });
   const gridVertical = gridHorizontal.map((arr) => arr.slice());
 
-  gridHorizontal.forEach((line) => {
-    let i = 0;
-    let nextZero = 0;
+  for (let k = 0; k < N; k++) {
+    i = 0;
+    nextZero = 0;
 
     while (i < N) {
-      if (line[i] === 1) {
+      if (gridHorizontal[k][i] === 1) {
         let j = i;
-        while (line[j + 1] === 1) {
+        while (gridHorizontal[k][j + 1] === 1) {
           j++;
         }
         nextZero = j + 1;
 
         while (j >= i) {
-          line[i] = line[i - 1] ? line[i - 1] + 1 : 1;
-          line[j] = line[j + 1] ? line[j + 1] + 1 : 1;
+          gridHorizontal[k][i] = gridHorizontal[k][i - 1]
+            ? gridHorizontal[k][i - 1] + 1
+            : 1;
+          gridHorizontal[k][j] = gridHorizontal[k][j + 1]
+            ? gridHorizontal[k][j + 1] + 1
+            : 1;
           j--;
           i++;
         }
@@ -36,12 +42,9 @@ var orderOfLargestPlusSign = function (N, mines) {
       }
       i++;
     }
-  });
 
-  for (let k = 0; k < N; k++) {
-    let i = 0;
-    let nextZero = 0;
-
+    i = 0;
+    nextZero = 0;
     while (i < N) {
       if (gridVertical[i][k] === 1) {
         let j = i;
