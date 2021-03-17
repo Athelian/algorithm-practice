@@ -8,34 +8,33 @@ var orderOfLargestPlusSign = function (N, mines) {
   let i;
   let nextZero;
 
-  let grid = Array(N)
+  let gridHorizontal = Array(N)
     .fill()
-    .map(() =>
-      Array(N)
-        .fill()
-        .map(() => [1, 1])
-    );
-
+    .map(() => Array(N).fill(1));
   mines.forEach((mine) => {
-    grid[mine[0]][mine[1]][0]--;
-    grid[mine[0]][mine[1]][1]--;
+    gridHorizontal[mine[0]][mine[1]]--;
   });
+  const gridVertical = gridHorizontal.map((arr) => arr.slice());
 
   for (let k = 0; k < N; k++) {
     i = 0;
     nextZero = 0;
 
     while (i < N) {
-      if (grid[k][i][1] === 1) {
+      if (gridHorizontal[k][i] === 1) {
         let j = i;
-        while (grid[k][j + 1] && grid[k][j + 1][1] === 1) {
+        while (gridHorizontal[k][j + 1] === 1) {
           j++;
         }
         nextZero = j + 1;
 
         while (j >= i) {
-          grid[k][i][1] = grid[k][i - 1] ? grid[k][i - 1][1] + 1 : 1;
-          grid[k][j][1] = grid[k][j + 1] ? grid[k][j + 1][1] + 1 : 1;
+          gridHorizontal[k][i] = gridHorizontal[k][i - 1]
+            ? gridHorizontal[k][i - 1] + 1
+            : 1;
+          gridHorizontal[k][j] = gridHorizontal[k][j + 1]
+            ? gridHorizontal[k][j + 1] + 1
+            : 1;
           j--;
           i++;
         }
@@ -47,16 +46,20 @@ var orderOfLargestPlusSign = function (N, mines) {
     i = 0;
     nextZero = 0;
     while (i < N) {
-      if (grid[i][k][0] === 1) {
+      if (gridVertical[i][k] === 1) {
         let j = i;
-        while (grid[j + 1] && grid[j + 1][k][0] === 1) {
+        while (gridVertical[j + 1] && gridVertical[j + 1][k] === 1) {
           j++;
         }
         nextZero = j + 1;
 
         while (j >= i) {
-          grid[i][k][0] = grid[i - 1] ? grid[i - 1][k][0] + 1 : 1;
-          grid[j][k][0] = grid[j + 1] ? grid[j + 1][k][0] + 1 : 1;
+          gridVertical[i][k] = gridVertical[i - 1]
+            ? gridVertical[i - 1][k] + 1
+            : 1;
+          gridVertical[j][k] = gridVertical[j + 1]
+            ? gridVertical[j + 1][k] + 1
+            : 1;
           j--;
           i++;
         }
@@ -66,12 +69,12 @@ var orderOfLargestPlusSign = function (N, mines) {
     }
   }
 
-  grid.forEach((row) =>
-    row.forEach((value) => {
-      value = Math.min(value[1], value[0]);
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      let value = Math.min(gridHorizontal[i][j], gridVertical[i][j]);
       if (value > best) best = value;
-    })
-  );
+    }
+  }
 
   return best;
 };
