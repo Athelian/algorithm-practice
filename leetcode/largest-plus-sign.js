@@ -4,141 +4,163 @@
  * @return {number}
  */
 var orderOfLargestPlusSign = function (N, mines) {
-  const even = Boolean(N % 2 === 0);
-  const minies = {};
-  const minesX = {};
-  const minesY = {};
-  const queue = [];
-  let length = even ? 2 : 1;
-  let x = even ? N / 2 - 1 : Math.floor(N / 2);
-  let y = x;
-  let max = x + 1;
-  const grid = Array(N)
+  const stack = [];
+  let length = N;
+  let x = 0;
+  let y = 0;
+  let centerIndex = Math.ceil(N / 2);
+  let best = 0;
+
+  const gridHorizontal = Array(N)
+    .fill()
+    .map(() => Array(N).fill(1));
+  const gridVertical = Array(N)
     .fill()
     .map(() => Array(N).fill(1));
   mines.forEach((mine) => {
-    if (!minies[mine[0]]) minies[mine[0]] = {};
-    minies[mine[0]][mine[1]] = true;
-    minesY[mine[0]] = true;
-    minesX[mine[1]] = true;
-    grid[mine[0]][mine[1]]--;
-    // grid[mine[0]].fill(0);
-    // for (let i = 0; i < N; i++) {
-    //   grid[i][mine[1]] = 0;
-    // }
+    gridHorizontal[mine[0]][mine[1]]--;
+    gridVertical[mine[0]][mine[1]]--;
   });
 
-  const tunnel = (y, x) => {
-    let originalX = x;
-    let originalY = y;
-    let counter = 0;
-    let smallest = Infinity;
-    //right:
-    while (x < N) {
-      if (minies[y] && minies[y][x]) {
-        if (counter < smallest) smallest = counter;
-        break;
-      }
-      counter++;
-      x++;
-    }
-    if (counter < smallest) smallest = counter;
-    counter = 0;
-    x = originalX;
-    while (y < N) {
-      if (minies[y] && minies[y][x]) {
-        if (counter < smallest) smallest = counter;
-        break;
-      }
-      counter++;
-      y++;
-    }
-    if (counter < smallest) smallest = counter;
-    y = originalY;
-    counter = 0;
-    while (y >= 0) {
-      if (minies[y] && minies[y][x]) {
-        if (counter < smallest) smallest = counter;
-        break;
-      }
-      counter++;
-      y--;
-    }
-    if (counter < smallest) smallest = counter;
-    y = originalY;
-    counter = 0;
-    while (x >= 0) {
-      if (minies[y] && minies[y][x]) {
-        if (counter < smallest) smallest = counter;
-        break;
-      }
-      counter++;
-      x--;
-    }
-    x = originalX;
-    if (counter < smallest) smallest = counter;
-    return smallest;
-  };
+  gridHorizontal.forEach((line) => {
+    let i = 0;
+    let nextZero = 0;
 
-  const spiral = () => {
-    for (let i = 0; i < length; i++) {
-      queue.push([y + i, x]);
-    }
-    for (let i = 1; i < length; i++) {
-      queue.push([y, x + i]);
-    }
-    for (let i = 1; i < length; i++) {
-      queue.push([y + i, x + length - 1]);
-    }
-    for (let i = 1; i < length - 1; i++) {
-      queue.push([y + length - 1, x + i]);
-    }
-  };
+    while (i < N) {
+      if (line[i] === 1) {
+        let j = i;
+        while (line[j + 1] === 1) {
+          j++;
+        }
+        nextZero = j + 1;
 
-  while (x >= 0) {
-    spiral();
-    let i = queue.length - 1;
-    while (i >= 0) {
-      if (grid[queue[i][0]][queue[i][1]] === 1) return max;
-      queue.pop();
-      i--;
+        while (j >= i) {
+          line[i] = line[i - 1] ? line[i - 1] + 1 : 1;
+          line[j] = line[j + 1] ? line[j + 1] + 1 : 1;
+          j--;
+          i++;
+        }
+        i = nextZero;
+      }
+      i++;
     }
-    length += 2; //Square extends by two
-    x--; // Move one square up and to the left
-    y--;
-    max--;
+  });
+
+  for (let k = 0; k < N; k++) {
+    let i = 0;
+    let nextZero = 0;
+
+    while (i < N) {
+      if (gridVertical[i][k] === 1) {
+        let j = i;
+        while (gridVertical[j + 1] && gridVertical[j + 1][k] === 1) {
+          j++;
+        }
+        nextZero = j + 1;
+
+        while (j >= i) {
+          gridVertical[i][k] = gridVertical[i - 1]
+            ? gridVertical[i - 1][k] + 1
+            : 1;
+          gridVertical[j][k] = gridVertical[j + 1]
+            ? gridVertical[j + 1][k] + 1
+            : 1;
+          j--;
+          i++;
+        }
+        if (Math.min(gridVertical[j + 1][k], gridHorizontal[j + 1][k]) > best)
+          best = Math.min(gridVertical[j + 1][k], gridHorizontal[j + 1][k]);
+        i = nextZero;
+      }
+      i++;
+    }
   }
 
-  let value;
-  let best = 0;
-  length = even ? 2 : 1;
-  x = even ? N / 2 - 1 : Math.floor(N / 2);
-  y = x;
-  max = x + 1;
+  while (x < centerIndex) {
+    for (let i = 0; i < length; i++) {
+      stack.push([y + i, x]);
+    }
+    for (let i = 1; i < length; i++) {
+      stack.push([y, x + i]);
+    }
+    for (let i = 1; i < length; i++) {
+      stack.push([y + i, x + length - 1]);
+    }
+    for (let i = 1; i < length - 1; i++) {
+      stack.push([y + length - 1, x + i]);
+    }
 
-  while (best < max) {
-    spiral();
-    let i = queue.length - 1;
-    while (i >= 0) {
-      value = tunnel(queue[i][0], queue[i][1]);
+    i = stack.length - 1;
+    while (stack.length) {
+      if (gridHorizontal[stack[i][0]][stack[i][1]] !== 0) {
+        gridHorizontal[stack[i][0]][stack[i][1]] =
+          Math.min(
+            stack[i][1] + 1 < N
+              ? gridHorizontal[stack[i][0]][stack[i][1] + 1]
+              : 0,
+            stack[i][1] - 1 > -1
+              ? gridHorizontal[stack[i][0]][stack[i][1] - 1]
+              : 0
+          ) + 1;
+        gridVertical[stack[i][0]][stack[i][1]] =
+          Math.min(
+            stack[i][0] + 1 < N
+              ? gridVertical[stack[i][0] + 1][stack[i][1]]
+              : 0,
+            stack[i][0] - 1 > -1
+              ? gridVertical[stack[i][0] - 1][stack[i][1]]
+              : 0
+          ) + 1;
+      }
+      let value = Math.min(
+        gridHorizontal[stack[i][0]][stack[i][1]],
+        gridVertical[stack[i][0]][stack[i][1]]
+      );
       if (value > best) best = value;
-      queue.pop();
+      stack.pop();
       i--;
     }
-    length += 2; //Square extends by two
-    x--; // Move one square up and to the left
-    y--;
-    max--;
+
+    length -= 2; //Square contracts by two
+
+    x++; // Move one square in right and one square down
+    y++;
   }
 
   return best;
 };
 
-orderOfLargestPlusSign(5, [
-  [1, 0],
-  [1, 4],
-  [2, 4],
+orderOfLargestPlusSign(10, [
+  [0, 0],
+  [0, 1],
+  [0, 2],
+  [0, 7],
+  [1, 2],
+  [1, 3],
+  [1, 9],
+  [2, 3],
+  [2, 5],
+  [2, 7],
+  [2, 8],
   [3, 2],
-  [4, 0],
+  [3, 5],
+  [3, 7],
+  [4, 2],
   [4, 3],
+  [4, 5],
+  [4, 7],
+  [5, 1],
+  [5, 4],
+  [5, 8],
+  [5, 9],
+  [7, 2],
+  [7, 5],
+  [7, 7],
+  [7, 8],
+  [8, 5],
+  [8, 8],
+  [9, 0],
+  [9, 1],
+  [9, 2],
+  [9, 8],
 ]);
