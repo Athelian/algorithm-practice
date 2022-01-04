@@ -15,11 +15,21 @@ function sherlockAndAnagrams(s) {
       j++;
     }
   }
+  function factorial(n) {
+    let r = 1;
+    while (n > 1) r *= n--;
+    return r;
+  }
+  function combinations(n, r) {
+    let s = 1;
+    let i = r;
+    while (i < n) s *= ++i;
+    return s / factorial(n - r);
+  }
   return Object.values(dict).reduce(
-    (acc, level) =>
-      acc + Object.values(level).reduce((innerAcc, freq) => innerAcc + freq - 1, 0),
+    (acc, level) => acc + Object.values(level).reduce((innerAcc, freq) => innerAcc + (freq > 1 ? combinations(freq, 2) : 0), 0),
     0
   );
 }
 
-sherlockAndAnagrams("cdcd");
+sherlockAndAnagrams("kkkk");
