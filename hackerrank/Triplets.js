@@ -1,24 +1,35 @@
 function countTriplets(arr, r) {
-  const list = Array(arr.length).fill("").map((e, i) => 1 * Math.pow(r, i))
-  const dict = {}
-  for (let i = 0; i < list.length - 2; i++) {
-    const triplet = []
-    for (let j = i; j < i + 3; j++) {
-      triplet.push(list[j])
+  let triplets = 0;
+
+  const factorial = (x) => {
+    if (x === 0) return 1
+    let total = x;
+    while (x > 2) {
+      total *= x - 1;
+      x--;
     }
-    dict[triplet] = true
-  }
-  let pairs = 0
-  
-  for (let i = 0; i < arr.length - 2; i++) {
-    if (arr[i] === arr[i + 1]) continue
-    if (arr[i + 1] === arr[i + 2]) {
-      i++
-      continue
-    }
-    console.log([arr[i], arr[i + 1], arr[i + 3]])
-    if (dict[[arr[i], arr[i + 1], arr[1 + 3]]]) pairs++
-  }
+    return total;
+  };
+  const combinationsGroupsOfThree = (n) =>
+    factorial(n) / (factorial(3) * factorial(n - 3));
+
+  const dict = arr.reduce(
+    (memo, el) => (memo[el] ? memo[el]++ : (memo[el] = 1)) && memo,
+    {}
+  );
+  Object.keys(dict).forEach((key) => {
+    let stepOnes = 0;
+    let stepTwos = 0;
+    stepOnes += dict[key * r];
+    stepTwos += dict[key * r * r];
+    triplets +=
+      stepOnes && stepTwos
+        ? stepTwos * stepOnes * dict[key]
+        : 0;
+  });
+
+  return triplets;
 }
 
-countTriplets([1,4,6,7], 2)
+// 1
+countTriplets([1, 5, 5, 25, 125], 2);
