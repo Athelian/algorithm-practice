@@ -13,30 +13,23 @@ function minimumBribes(q) {
       shift.push(displacement);
     }
   }
-  // shift.sort();
-  // Now trade values around until we reach all 0s and + 2
-
-  let i = 0;
-  let j = shift.length - 1;
-  while (i < j) {
-    // array should be something like [-1,-1,-1,-1,-1,-1,1,2,3]
-    while (shift[i] === 0 || shift[i] === 2) {
+  let i = shift.length - 1;
+  while (i >= 0) {
+    while (shift[i] !== -2 && shift[i] !== -1 && i >= 0) i--;
+    if (i === -1) break;
+    if (shift[i] === -2) {
+      shift[i] = shift[i + 1] - 1;
+      shift[i + 1] = shift[i + 2] - 1;
+      shift[i + 2] = 0;
+      bribes += 2;
       i++;
+    } else {
+      shift[i] = shift[i + 1] - 1;
+      shift[i + 1] = 0;
+      bribes++;
     }
-    while (shift[j] === 0 || shift[j] === 2) {
-      j--;
-    }
-    // [-1,-1,-1,-1,-1,-1,1,1,1, 3]
-    //  i                        j
-    shift[i]++;
-    shift[j]--;
-    if (shift[i] === 0 || shift[i] === 2) i++;
-    if (shift[j] === 0 || shift[i] === 2) j--;
-    bribes += 1;
-    // [0,-1,-1,-1,-1,-1,1,1,1, 2]
-    // [0,0,-1,-1,-1,-1,1,1,1, 1]
   }
-  return bribes;
+  console.log(bribes);
 }
 
-minimumBribes([2, 1, 5, 3, 4]);
+minimumBribes([1, 2, 5, 3, 7, 8, 6, 4]);
